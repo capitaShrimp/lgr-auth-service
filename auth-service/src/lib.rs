@@ -17,6 +17,7 @@ impl Application {
     // on error -- return a boxed Error trait object
     // -- this allows us to use '?' to propogate errors within the function body
     // -- these errors can be of any type which implements the Error trait
+    /// Build the authentication service
     pub async fn build(address: &str) -> Result<Self, Box<dyn Error>> {
         // Move the Router definition from `main.rs` to here.
         // Also, remove the `hello` route.
