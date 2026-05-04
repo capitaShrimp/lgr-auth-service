@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap};
 use auth_service::Application;
 
 pub struct TestApp {
@@ -9,14 +9,14 @@ pub struct TestApp {
 impl TestApp {
     /// Create an instance of the auth-service Application for integration testing.
     /// 
-    /// This method configures and launches the auth-service and creates & returns an HTTP
-    /// client for testing purposes.
+    /// This method configures and launches the auth-service (server) and
+    /// creates & returns an HTTP client for testing purposes.
     pub async fn new() -> Self {
         let app = Application::build("127.0.0.1:0")
             .await
             .expect("Failed to build app");
 
-        // obtain a http routing string from the address that the application is bound / listening to
+        // obtain an http routing string from the address that the application is bound / listening to
         let address = format!("http://{}", app.address.clone());
 
         // run the auth-service in a separate async task
@@ -44,17 +44,15 @@ impl TestApp {
             .expect("Failed to execute root request")
     }
 
-    // TODO: implement helper functions for all other routes (signup, login, logout, verify-2fa, and verify-token)
-
     /// POST-Request the auth service to signup a new user and return the Response.
     /// 
     /// This route registers a new user.
-    pub async fn post_signup(&self) -> reqwest::Response {
+    pub async fn post_signup(&self, email: &str, password: &str, require2fa_bool: &str) -> reqwest::Response {
         // this will POST a body of `{"email":"user@example.com","password":"some-password","requires2FA":"false"}`
         let mut map = HashMap::new();
-        map.insert("email", "user@example.com");
-        map.insert("password", "some-password");
-        map.insert("requires2FA", "false");
+        map.insert("email", email);
+        map.insert("password", password);
+        map.insert("requires2FA", require2fa_bool);
 
         // construct & send the POST Request, then return the Response
         self.http_client
@@ -83,11 +81,11 @@ impl TestApp {
     
     /// POST-Request the logout page of the auth service and return the response.
     /// 
-    /// This route ---
+    /// TODO: is this correct?
     pub async fn post_logout(&self) -> reqwest::Response {
-        // TODO: finish this method with parameters / body
         self.http_client
             .post(&format!("{}/logout", &self.address))
+            .header("cookie", "jwt-token-string")
             .send()
             .await
             .expect("Failed to execute logout request")
@@ -110,9 +108,15 @@ impl TestApp {
             .expect("Failed to execute verify-2fa request")
     }
     /// POST-Request the verify-token page of the auth service and return the response.
+    /// 
+    /// TODO: validate if this method is implemented correctly
     pub async fn post_verify_token(&self) -> reqwest::Response {
+        let mut map = HashMap::new();
+        map.insert("token", "some-token-string");
+
         self.http_client
             .post(&format!("{}/verify-token", &self.address))
+            .json(&map)
             .send()
             .await
             .expect("Failed to execute verify-token request")
