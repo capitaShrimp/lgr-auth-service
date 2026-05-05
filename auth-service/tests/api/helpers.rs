@@ -66,10 +66,10 @@ impl TestApp {
     /// POST-Request the auth service to login a user and return the Response.
     /// 
     /// This route authenticates the user and returns a JWT for the session.
-    pub async fn post_login(&self) -> reqwest::Response {
+    pub async fn post_login(&self, email: &str, password: &str) -> reqwest::Response {
         let mut map = HashMap::new();
-        map.insert("email", "user@example.com");
-        map.insert("password", "some-password");
+        map.insert("email", email);
+        map.insert("password", password);
 
         self.http_client
             .post(&format!("{}/login", &self.address))
@@ -82,10 +82,10 @@ impl TestApp {
     /// POST-Request the logout page of the auth service and return the response.
     /// 
     /// TODO: is this correct?
-    pub async fn post_logout(&self) -> reqwest::Response {
+    pub async fn post_logout(&self, jwt: &str) -> reqwest::Response {
         self.http_client
             .post(&format!("{}/logout", &self.address))
-            .header("cookie", "jwt-token-string")
+            .header("cookie", jwt)
             .send()
             .await
             .expect("Failed to execute logout request")
@@ -94,11 +94,11 @@ impl TestApp {
     /// POST-Request the auth service to verify a 2FA token and return the Response.
     /// 
     /// This route verifies a 2FA token.
-    pub async fn post_verify_2fa(&self) -> reqwest::Response {
+    pub async fn post_verify_2fa(&self, email: &str, attempt_id: &str, code_2fa: &str) -> reqwest::Response {
         let mut map = HashMap::new();
-        map.insert("email", "user@example.com");
-        map.insert("loginAttemptId", "id-string");
-        map.insert("2FACode", "2FA-string");
+        map.insert("email", email);
+        map.insert("loginAttemptId", attempt_id);
+        map.insert("2FACode", code_2fa);
 
         self.http_client
             .post(&format!("{}/verify-2fa", &self.address))
@@ -110,9 +110,9 @@ impl TestApp {
     /// POST-Request the verify-token page of the auth service and return the response.
     /// 
     /// TODO: validate if this method is implemented correctly
-    pub async fn post_verify_token(&self) -> reqwest::Response {
+    pub async fn post_verify_token(&self, jwt: &str) -> reqwest::Response {
         let mut map = HashMap::new();
-        map.insert("token", "some-token-string");
+        map.insert("token", jwt);
 
         self.http_client
             .post(&format!("{}/verify-token", &self.address))

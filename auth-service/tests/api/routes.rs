@@ -135,5 +135,64 @@ async fn signup_returns_unprocessable() {
 }
 
 // TODO: signup status code 500
-// TODO: implement tests for all other routes (signup, login, logout, verify-2fa, and verify-token).
+
+// TODO: implement tests for all other routes (logout, verify-2fa, and verify-token).
 // -- for now, simply assert that each route returns a 200 HTTP status code.
+
+#[tokio::test]
+async fn login_returns_success() {
+    let app = TestApp::new().await;
+
+    let email = "some-email@gmail.com";
+    let password = "some-password-string";
+    let require2fa = "false";
+
+    let _response = app.post_signup(email, password, require2fa).await;
+    let response = app.post_login(email, password).await;
+
+    assert_eq!(response.status().as_u16(), 200);
+    assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
+    // body -- success message -- { "message": "User created successfully!"}
+    assert_eq!(response.json::<String>().await.unwrap(), "User created successfully!")
+}
+
+#[tokio::test]
+async fn logout_returns_success() {
+    let app = TestApp::new().await;
+
+    let email = "some-email@gmail.com";
+    let password = "some-password-string";
+    let require2fa = "false";
+
+    let _response = app.post_signup(email, password, require2fa).await;
+    let _response = app.post_login(email, password).await;
+
+    let jwt_string = "some-jwt-token-string";
+
+    let response = app.post_logout(jwt_string).await;
+
+    assert_eq!(response.status().as_u16(), 200);
+}
+
+#[tokio::test]
+async fn verify_2fa_returns_success() {
+    let app = TestApp::new().await;
+
+    let email = "some-email@gmail.com";
+    let attempt_id = "some-login-attempt-id";
+    let code_2fa = "some-2fa-code";
+
+    let response = app.post_verify_2fa(email, attempt_id, code_2fa).await;
+
+    assert_eq!(response.status().as_u16(), 200);
+}
+
+#[tokio::test]
+async fn verify_token_returns_success() {
+    let app = TestApp::new().await;
+
+    let token = "some-jwt-token-string";
+    let response = app.post_verify_token(token).await;
+
+    assert_eq!(response.status().as_u16(), 200);
+}
