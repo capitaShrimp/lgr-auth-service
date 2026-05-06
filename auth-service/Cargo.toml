@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 axum = "0.8.9"
 tokio = { version = "1.52.2", features = ["full"] }
-tower-http = { version = "0.6.8", features = ["fs"] }
-reqwest = { version = "0.13.3", default-features = false, features = ["json"] }
+tower-http = { version = "0.6.9", features = ["fs"] }
+reqwest = { version = "0.13.3", default-features = false, features = ["cookies", "json"] }

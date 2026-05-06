@@ -24,8 +24,11 @@ impl TestApp {
         #[allow(clippy::let_underscore_future)]
         let _ = tokio::spawn(app.run());
 
-        // create a reqwest http client instance
-        let http_client = reqwest::Client::new();
+        // create a reqwest http client with an automatic, persistent cookie store
+        let http_client = reqwest::Client::builder()
+            .cookie_store(true)
+            .build()
+            .unwrap(); // TODO: implement error handling
 
         // create a new 'TestApp' instance and return it
         return TestApp {
@@ -82,10 +85,9 @@ impl TestApp {
     /// POST-Request the logout page of the auth service and return the response.
     /// 
     /// TODO: is this correct?
-    pub async fn post_logout(&self, jwt: &str) -> reqwest::Response {
+    pub async fn post_logout(&self) -> reqwest::Response {
         self.http_client
             .post(&format!("{}/logout", &self.address))
-            .header("cookie", jwt)
             .send()
             .await
             .expect("Failed to execute logout request")
@@ -110,9 +112,9 @@ impl TestApp {
     /// POST-Request the verify-token page of the auth service and return the response.
     /// 
     /// TODO: validate if this method is implemented correctly
-    pub async fn post_verify_token(&self, jwt: &str) -> reqwest::Response {
+    pub async fn post_verify_token(&self, session_token: &str) -> reqwest::Response {
         let mut map = HashMap::new();
-        map.insert("token", jwt);
+        map.insert("token", session_token);
 
         self.http_client
             .post(&format!("{}/verify-token", &self.address))

@@ -1,8 +1,11 @@
-use axum::{Router, serve::Serve};
+use axum::{routing::{post}, Router, serve::Serve};
 use std::error::Error;
 use std::boxed::Box;
 use tokio::net::TcpListener;
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
+
+
+pub mod routes;
 
 // This struct encapsulates our application-related logic.
 pub struct Application {
@@ -13,19 +16,25 @@ pub struct Application {
 }
 
 impl Application {
-    // on success -- return a Result::Ok(Application{})
-    // on error -- return a boxed Error trait object
-    // -- this allows us to use '?' to propogate errors within the function body
-    // -- these errors can be of any type which implements the Error trait
     /// Build the authentication service
     pub async fn build(address: &str) -> Result<Self, Box<dyn Error>> {
-        // Move the Router definition from `main.rs` to here.
-        // Also, remove the `hello` route.
-        // We don't need it at this point.
+        // on success -- return a Result::Ok(Application{})
+        // on error -- return a boxed Error trait object
+        // -- this allows us to use '?' to propogate errors within the function body
+        // -- propogated errors can be of any type which implements the Error trait
 
-        let assets_dir = ServeDir::new("assets");
+        let asset_dir = ServeDir::new("assets")
+            .not_found_service(ServeFile::new("assets/index.html"));
+
         let router = Router::new()
-            .fallback_service(assets_dir);
+            // fallback service when an undefined route is called
+            .fallback_service(asset_dir)
+            // connect defined routes to defined handlers
+            .route("/signup", post(routes::signup_handler))
+            .route("/login", post(routes::login_handler))
+            .route("/logout", post(routes::logout_handler))
+            .route("/verify-2fa", post(routes::verify_2fa_handler))
+            .route("/verify-token", post(routes::verify_token_handler));
 
         let listener = tokio::net::TcpListener::bind(address).await?;
         let address = listener.local_addr()?.to_string();
