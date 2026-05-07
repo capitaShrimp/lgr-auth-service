@@ -1,5 +1,6 @@
 use std::{collections::HashMap};
 use auth_service::Application;
+use uuid::Uuid;
 
 pub struct TestApp {
     pub address: String,
@@ -50,17 +51,14 @@ impl TestApp {
     /// POST-Request the auth service to signup a new user and return the Response.
     /// 
     /// This route registers a new user.
-    pub async fn post_signup(&self, email: &str, password: &str, require2fa_bool: &str) -> reqwest::Response {
-        // this will POST a body of `{"email":"user@example.com","password":"some-password","requires2FA":"false"}`
-        let mut map = HashMap::new();
-        map.insert("email", email);
-        map.insert("password", password);
-        map.insert("requires2FA", require2fa_bool);
-
+    pub async fn post_signup<Body>(&self, body: &Body) -> reqwest::Response 
+        // body is generic over any type that implements Serde's Serialize trait
+        where Body: serde::Serialize
+    {
         // construct & send the POST Request, then return the Response
         self.http_client
             .post(&format!("{}/signup", &self.address))
-            .json(&map)
+            .json(body)
             .send()
             .await
             .expect("Failed to execute signup request")
@@ -123,4 +121,14 @@ impl TestApp {
             .await
             .expect("Failed to execute verify-token request")
     }
+}
+
+/// Generate a random email address via Uuid
+pub fn get_random_email() -> String {
+    format!("{}@example.com", Uuid::new_v4())
+}
+
+/// Generate a random password via Uuid
+pub fn get_random_password() -> String {
+    format!("{}", Uuid::new_v4())
 }

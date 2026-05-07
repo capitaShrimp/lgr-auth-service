@@ -1,15 +1,15 @@
-use crate::helpers::TestApp;
+use crate::helpers::{get_random_email, get_random_password, TestApp};
 
 #[tokio::test]
 async fn verify_token_returns_success() {
     let app = TestApp::new().await;
 
-    let email = "some-email@gmail.com";
-    let password = "some-password-string";
-    let require2fa = "false";
+    // let email = "some-email@gmail.com";
+    // let password = "some-password-string";
+    // let require2fa = "false";
 
-    let _signup_response = app.post_signup(email, password, require2fa).await;
-    let _login_response = app.post_login(email, password).await; // JWT cookie set
+    // let _signup_response = app.post_signup(email, password, require2fa).await;
+    let _login_response = app.post_login(&get_random_email(), &get_random_password()).await; // JWT cookie set
 
     // inspect the cookie here if desired
     for cookie in _login_response.cookies() {

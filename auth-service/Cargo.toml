@@ -6,7 +6,17 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# http routing & request handling framework for our auth-service (server)
 axum = "0.8.9"
+# async runtime for axum
 tokio = { version = "1.52.2", features = ["full"] }
-tower-http = { version = "0.6.9", features = ["fs"] }
+# http middleware for our auth-service (server)
+tower-http = { version = "0.6.10", features = ["fs"] }
+# http client library for our test client
 reqwest = { version = "0.13.3", default-features = false, features = ["cookies", "json"] }
+# format agnostic -- serialize / deserialize framework to / from Rust data types
+serde = { version = "1.0.228", features = ["derive"] }
+# format-specific -- implements JSON parsing & generation on top of serde
+serde_json = { version = "1.0.149" }
+# generate random IDs -- great for creating test data
+uuid = { version = "1.18.1", features = ["v4", "serde"] }
