@@ -1,22 +1,29 @@
 use crate::helpers::{TestApp, get_random_email, get_random_password};
 
 #[tokio::test]
-async fn return_success() {
+async fn return_201_for_valid_input() {
     // boot the TestApp (server & client)
     let app = TestApp::new().await;
 
-    // create fields for a successful signup
-    let random_email = get_random_email();
-    let test_case = 
+    // create valid test cases
+    let test_cases = [
         serde_json::json!({
-            "email": random_email,
-            "password": "password123",
+            "email": get_random_email(),
+            "password": get_random_email(),
             "requires2FA": false
-        });
+        }),
+        serde_json::json!({
+            "email": get_random_email(),
+            "password": get_random_email(),
+            "requires2FA": true
+        })
+    ];
 
     // POST-Request the '/signup' of the auth service with the created fields
-    let response = app.post_signup(&test_case).await;
-    assert_eq!(response.status().as_u16(), 201);
+    for test_case in test_cases.iter() {
+        let response = app.post_signup(test_case).await;
+        assert_eq!(response.status().as_u16(), 201, "Failed for input: {:?}", test_case);
+    }
 }
 
 /// Call the /signup route with various malformed inputs and assert that a 422 HTTP
@@ -25,6 +32,7 @@ async fn return_success() {
 async fn return_422_for_malformed_input() {
     let app = TestApp::new().await;
 
+    // create invalid test cases
     let test_cases = [
         serde_json::json!({ // no email field
             "password": get_random_password(),

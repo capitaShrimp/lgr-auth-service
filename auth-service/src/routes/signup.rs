@@ -9,8 +9,8 @@ use serde::Deserialize;
 /// the request with a 422 HTTP status code.
 /// 
 /// https://docs.rs/axum/latest/axum/extract/
-pub async fn signup_handler(Json(request): Json<SignupRequest>) -> impl IntoResponse {
-    (StatusCode::CREATED, "User created successfully").into_response()
+pub async fn signup_handler(Json(_request): Json<SignupRequest>) -> impl IntoResponse {
+    (StatusCode::OK, "User created successfully").into_response()
 }
 
 // automatically generate a Deserialize implementation for the SignupRequest struct

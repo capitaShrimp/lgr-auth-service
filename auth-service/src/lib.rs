@@ -5,7 +5,9 @@ use tokio::net::TcpListener;
 use tower_http::services::{ServeDir, ServeFile};
 
 
+pub mod domain;
 pub mod routes;
+pub mod services;
 
 // This struct encapsulates our application-related logic.
 pub struct Application {
