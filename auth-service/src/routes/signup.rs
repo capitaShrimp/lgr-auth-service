@@ -1,5 +1,7 @@
-use axum::{extract::Json, http::StatusCode, response::IntoResponse};
-use serde::Deserialize;
+use axum::{extract::{Json, State}, http::StatusCode, response::IntoResponse};
+use serde::{Deserialize, Serialize};
+
+use crate::{app_state::AppState, domain::User};
 
 /// Handler for requests sent to the /signup route.
 /// 
@@ -8,9 +10,38 @@ use serde::Deserialize;
 /// asserts that the incoming request has a well-formatted JSON body. Otherwise, Axum rejects
 /// the request with a 422 HTTP status code.
 /// 
+/// Uses Axum's State extractor type to pass in AppState. This is how we can access our UserStore.
+/// 
 /// https://docs.rs/axum/latest/axum/extract/
-pub async fn signup_handler(Json(_request): Json<SignupRequest>) -> impl IntoResponse {
-    (StatusCode::OK, "User created successfully").into_response()
+/// 
+/// https://docs.rs/axum/latest/axum/extract/struct.State.html
+pub async fn signup_handler(State(state): State<AppState>, // order matters!
+                            Json(request): Json<SignupRequest>) -> impl IntoResponse {
+
+    // create a new 'User' instance using the data in the Request
+    let user = User::new(request.email, request.password, request.requires_2fa);
+
+    // lock the user_store for writing
+    let mut user_store = state.user_store.write().await;
+
+    // add the new 'User' to the UserStore & simply .unwrap() the 'Result' for now
+    user_store.add_user(user).unwrap();
+
+    // craft the Response
+    let signup_response = Json(SignupResponse {
+        message: "User created successfully".to_string()
+    });
+
+    // return the Response
+    (StatusCode::CREATED, signup_response)
+}
+
+/// Response body for successful signup.
+/// Derive Serialize for the signup_handler.
+/// Derive Deserialize, PartialEq, and Debug for the test api.
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+pub struct SignupResponse {
+    pub message: String
 }
 
 // automatically generate a Deserialize implementation for the SignupRequest struct

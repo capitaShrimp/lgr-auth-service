@@ -19,6 +19,8 @@ pub struct HashMapUserStore {
 
 impl HashMapUserStore {
     /// Adds a user to the Hash Map of users if the user does not already exist.
+    /// 
+    /// This function assumes the User info coming in is valid.
     pub fn add_user(&mut self, user: User) -> Result<(), UserStoreError> {
         // check if user already exists
         if self.users.contains_key(&user.email) {
@@ -60,7 +62,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_add_user() {
+    async fn test_add_user_success() {
         // initialize a new, empty HashmapUserStore
         let mut store = HashMapUserStore::default();
 
@@ -74,6 +76,30 @@ mod tests {
         let result = store.add_user(user);
         // assert that adding the user was successful
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_add_user_failure() {
+        // initialize a new, empty HashmapUserStore
+        let mut store = HashMapUserStore::default();
+
+        // add a user to the store
+        let user = User::new(
+            "akon@lgr.com".to_string(),
+            "password1234567890".to_string(),
+            false,
+        );
+        let _result = store.add_user(user);
+
+        // attempt to add the same user to the store again
+        let user = User::new(
+            "akon@lgr.com".to_string(),
+            "password1234567890".to_string(),
+            false,
+        );
+        let result = store.add_user(user);
+        // assert that adding the user was unsuccessful
+        assert!(result.is_err());
     }
 
     #[tokio::test]

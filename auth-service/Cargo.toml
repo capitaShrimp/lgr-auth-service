@@ -9,7 +9,7 @@ edition = "2021"
 # http routing & request handling framework for our auth-service (server)
 axum = "0.8.9"
 # async runtime for axum
-tokio = { version = "1.52.2", features = ["full"] }
+tokio = { version = "1.52.3", features = ["full"] }
 # http middleware for our auth-service (server)
 tower-http = { version = "0.6.10", features = ["fs"] }
 # http client library for our test client

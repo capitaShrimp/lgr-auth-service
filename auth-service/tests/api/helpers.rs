@@ -1,6 +1,13 @@
 use std::{collections::HashMap};
-use auth_service::Application;
 use uuid::Uuid;
+
+use auth_service::Application;
+use auth_service::app_state::{AppState, UserStoreType};
+use auth_service::services::hashmap_user_store::{HashMapUserStore};
+
+use std::sync::Arc;
+use tokio::sync::RwLock;
+
 
 pub struct TestApp {
     pub address: String,
@@ -13,9 +20,17 @@ impl TestApp {
     /// This method configures and launches the auth-service (server) and
     /// creates & returns an HTTP client for testing purposes.
     pub async fn new() -> Self {
-        let app = Application::build("127.0.0.1:0")
+
+        // localhost / loopback address
+        let address = "127.0.0.1:0";
+
+        let user_store: UserStoreType = Arc::new(RwLock::new(HashMapUserStore::default()));
+        let app_state = AppState::new(user_store);
+        
+        // create a new application instance and start the server
+        let app = Application::build(app_state, address)
             .await
-            .expect("Failed to build app");
+            .expect("Failed to build app. Likely port collision.");
 
         // obtain an http routing string from the address that the application is bound / listening to
         let address = format!("http://{}", app.address.clone());
